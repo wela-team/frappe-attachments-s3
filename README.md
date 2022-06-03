@@ -30,8 +30,9 @@ Frappe app to make file upload automatically upload and read from s3.
 4. Delete From Cloud when selected deletes the file form s3 bucket whenever a file
     is deleted from ui. By default the Delete from cloud will be unchecked.
 
-##### S3 Configuration
+##### S3 Configuration 
 1. Permission Overview (Based on requirements)
+> When createing the bucket make sure that ACL is enabled
 > Objects can be public <br>
 >> The bucket is not public but anyone with appropriate permissions can grant public access to objects.
 
