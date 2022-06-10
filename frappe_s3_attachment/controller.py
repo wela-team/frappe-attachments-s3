@@ -34,6 +34,7 @@ class S3Operations(object):
                 aws_access_key_id=self.s3_settings_doc.aws_key,
                 aws_secret_access_key=self.s3_settings_doc.aws_secret,
                 region_name=self.s3_settings_doc.region_name,
+                endpoint_url="https://s3." + self.s3_settings_doc.region_name + ".amazonaws.com",
             )
         else:
             self.S3_CLIENT = boto3.client('s3')
@@ -109,12 +110,16 @@ class S3Operations(object):
         Strips the file extension to set the content_type in metadata.
         """
         mime_type = magic.from_file(file_path, mime=True)
+        # frappe.msgprint(file_name)
+        # frappe.msgprint("File Name Before")
+        file_name = file_name.encode('ascii', 'replace')
+        file_name = file_name.decode("utf-8")
+        # frappe.msgprint(file_name)
+        # frappe.msgprint("File Name After")
         key = self.key_generator(file_name, parent_doctype, parent_name)
         content_type = mime_type
         try:
             if is_private:
-                file_name = file_name.encode('ascii', 'replace')
-                file_name = file_name.decode("utf-8")
                 self.S3_CLIENT.upload_file(
                     file_path, self.BUCKET, key,
                     ExtraArgs={
@@ -140,7 +145,7 @@ class S3Operations(object):
 
         except boto3.exceptions.S3UploadFailedError:
             frappe.throw(frappe._("File Upload Failed. Please try again."))
-        return key
+        return key,file_name
 
     def delete_from_s3(self, key):
         """Delete file from s3"""
@@ -207,7 +212,7 @@ def file_upload_to_s3(doc, method):
     s3_upload = S3Operations()
     path = doc.file_url
     site_path = frappe.utils.get_site_path()
-    if doc.doctype == "File":
+    if doc.doctype == "File" and not doc.attached_to_doctype:
         parent_doctype = doc.doctype
         parent_name = doc.name
     else:
@@ -219,7 +224,7 @@ def file_upload_to_s3(doc, method):
             file_path = site_path + '/public' + path
         else:
             file_path = site_path + path
-        key = s3_upload.upload_files_to_s3_with_key(
+        key,filename = s3_upload.upload_files_to_s3_with_key(
             file_path, doc.file_name,
             doc.is_private, parent_doctype,
             parent_name
@@ -227,22 +232,26 @@ def file_upload_to_s3(doc, method):
 
         if doc.is_private:
             method = "frappe_s3_attachment.controller.generate_file"
-            file_url = """/api/method/{0}?key={1}&file_name={2}""".format(method, key, doc.file_name)
+            file_url = """/api/method/{0}?key={1}&file_name={2}""".format(method, key, filename)
         else:
             file_url = '{}/{}/{}'.format(
                 s3_upload.S3_CLIENT.meta.endpoint_url,
                 s3_upload.BUCKET,
                 key
             )
-        os.remove(file_path)
-        doc = frappe.db.sql("""UPDATE `tabFile` SET file_url=%s, folder=%s,
+        frappe.db.sql("""UPDATE `tabFile` SET file_url=%s, folder=%s,
             old_parent=%s, content_hash=%s WHERE name=%s""", (
             file_url, 'Home/Attachments', 'Home/Attachments', key, doc.name))
 
-        if frappe.get_meta(parent_doctype).get('image_field'):
-            frappe.db.set_value(parent_doctype, parent_name, frappe.get_meta(parent_doctype).get('image_field'), file_url)
+        # From this PR, this code is unuseful
+        # https://github.com/zerodha/frappe-attachments-s3/pull/39
+        # if frappe.get_meta(parent_doctype).get('image_field'):
+        #     frappe.db.set_value(parent_doctype, parent_name, frappe.get_meta(
+        #         parent_doctype).get('image_field'), file_url)
 
         frappe.db.commit()
+        doc.reload()
+        os.remove(file_path)
 
 
 @frappe.whitelist()
@@ -289,7 +298,7 @@ def upload_existing_files_s3(name, file_name):
             file_path = site_path + '/public' + path
         else:
             file_path = site_path + path
-        key = s3_upload.upload_files_to_s3_with_key(
+        key,filename = s3_upload.upload_files_to_s3_with_key(
             file_path, doc.file_name,
             doc.is_private, parent_doctype,
             parent_name
