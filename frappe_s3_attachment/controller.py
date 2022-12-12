@@ -7,11 +7,11 @@ import re
 import os
 
 import boto3
-import magic
 import frappe
 
 from botocore.exceptions import ClientError
 from frappe import _
+import magic
 
 
 class S3Operations(object):
