@@ -327,7 +327,7 @@ class ImportFile_new:
 			if 'frappe_s3_attachment' in file_doc[0].get('file_url'):
 				self.s3_file = file_doc[0].name
 	
-		if isinstance(file, frappe.string_types):
+		if isinstance(file, str):
 			if self.s3_file:
 				self.s3_file = frappe.get_doc("File",self.s3_file)
 			elif frappe.db.exists("File", {"file_url": file}):
@@ -645,7 +645,7 @@ class Row:
 				return
 		elif df.fieldtype in ["Date", "Datetime"]:
 			value = self.get_date(value, col)
-			if isinstance(value, frappe.string_types):
+			if isinstance(value, str):
 				# value was not parsed as datetime object
 				self.warnings.append(
 					{
