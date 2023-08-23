@@ -5,7 +5,7 @@ import string
 import datetime
 import re
 import os
-
+from frappe.utils import get_url, get_url_to_form
 import boto3
 import frappe
 
@@ -232,7 +232,9 @@ def file_upload_to_s3(doc, method):
 
         if doc.is_private:
             method = "frappe_s3_attachment.controller.generate_file"
-            file_url = """/api/method/{0}?key={1}&file_name={2}""".format(method, key, filename)
+            file_full_url = get_url_to_form("File",filename)
+            site_base_url = "https://bethel.tacten.co"
+            file_url = """{0}/api/method/{1}?key={2}&file_name={3}""".format(site_base_url, method, key, filename)
         else:
             file_url = '{}/{}/{}'.format(
                 s3_upload.S3_CLIENT.meta.endpoint_url,
@@ -306,7 +308,9 @@ def upload_existing_files_s3(name, file_name):
 
         if doc.is_private:
             method = "frappe_s3_attachment.controller.generate_file"
-            file_url = """/api/method/{0}?key={1}""".format(method, key)
+            file_full_url = get_url_to_form("File",name)
+            site_base_url = "https://bethel.tacten.co"
+            file_url = """{0}/api/method/{1}?key={2}""".format(site_base_url, method, key)
         else:
             file_url = '{}/{}/{}'.format(
                 s3_upload.S3_CLIENT.meta.endpoint_url,
