@@ -232,8 +232,7 @@ def file_upload_to_s3(doc, method):
 
         if doc.is_private:
             method = "frappe_s3_attachment.controller.generate_file"
-            file_full_url = get_url_to_form("File",filename)
-            site_base_url = "https://bethel.tacten.co"
+            site_base_url = frappe.local.conf.site_base_url if frappe.local.conf.site_base_url else ""
             file_url = """{0}/api/method/{1}?key={2}&file_name={3}""".format(site_base_url, method, key, filename)
         else:
             file_url = '{}/{}/{}'.format(
@@ -308,8 +307,7 @@ def upload_existing_files_s3(name, file_name):
 
         if doc.is_private:
             method = "frappe_s3_attachment.controller.generate_file"
-            file_full_url = get_url_to_form("File",name)
-            site_base_url = "https://bethel.tacten.co"
+            site_base_url = frappe.local.conf.site_base_url if frappe.local.conf.site_base_url else ""
             file_url = """{0}/api/method/{1}?key={2}""".format(site_base_url, method, key)
         else:
             file_url = '{}/{}/{}'.format(
