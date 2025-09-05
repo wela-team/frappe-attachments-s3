@@ -209,6 +209,10 @@ def file_upload_to_s3(doc, method):
     """
     check and upload files to s3. the path check and
     """
+    # Skip S3 upload for external URLs (http/https links)
+    if doc.file_url and doc.file_url.startswith(('http://', 'https://')):
+        return
+    
     s3_upload = S3Operations()
     path = doc.file_url
     site_path = frappe.utils.get_site_path()
@@ -353,6 +357,10 @@ def migrate_existing_files():
 
 def delete_from_cloud(doc, method):
     """Delete file from s3"""
+    # Skip S3 deletion for external URLs (http/https links)
+    if doc.file_url and doc.file_url.startswith(('http://', 'https://')):
+        return
+    
     s3 = S3Operations()
     s3.delete_from_s3(doc.content_hash)
 
