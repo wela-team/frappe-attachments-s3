@@ -25,16 +25,23 @@ class S3Operations(object):
             'S3 File Attachment',
             'S3 File Attachment',
         )
+        
+        # Decrypt the AWS secret as it's stored as a password field
+        aws_secret = frappe.utils.password.get_decrypted_password(
+            'S3 File Attachment',
+            'S3 File Attachment',
+            'aws_secret'
+        )
+        
         if (
             self.s3_settings_doc.aws_key and
-            self.s3_settings_doc.aws_secret
+            aws_secret
         ):
             self.S3_CLIENT = boto3.client(
                 's3',
                 aws_access_key_id=self.s3_settings_doc.aws_key,
-                aws_secret_access_key=self.s3_settings_doc.aws_secret,
+                aws_secret_access_key=aws_secret,
                 region_name=self.s3_settings_doc.region_name,
-                endpoint_url="https://s3." + self.s3_settings_doc.region_name + ".amazonaws.com",
             )
         else:
             self.S3_CLIENT = boto3.client('s3')
@@ -155,10 +162,17 @@ class S3Operations(object):
         )
 
         if self.s3_settings_doc.delete_file_from_cloud:
+            # Decrypt the AWS secret as it's stored as a password field
+            aws_secret = frappe.utils.password.get_decrypted_password(
+                'S3 File Attachment',
+                'S3 File Attachment',
+                'aws_secret'
+            )
+            
             S3_CLIENT = boto3.client(
                 's3',
                 aws_access_key_id=self.s3_settings_doc.aws_key,
-                aws_secret_access_key=self.s3_settings_doc.aws_secret,
+                aws_secret_access_key=aws_secret,
                 region_name=self.s3_settings_doc.region_name,
             )
 
