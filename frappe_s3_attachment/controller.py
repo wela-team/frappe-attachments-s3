@@ -42,6 +42,7 @@ class S3Operations(object):
                 aws_access_key_id=self.s3_settings_doc.aws_key,
                 aws_secret_access_key=aws_secret,
                 region_name=self.s3_settings_doc.region_name,
+                endpoint_url=f"https://s3.{self.s3_settings_doc.region_name}.amazonaws.com",
             )
         else:
             self.S3_CLIENT = boto3.client('s3')
@@ -174,6 +175,7 @@ class S3Operations(object):
                 aws_access_key_id=self.s3_settings_doc.aws_key,
                 aws_secret_access_key=aws_secret,
                 region_name=self.s3_settings_doc.region_name,
+                endpoint_url=f"https://s3.{self.s3_settings_doc.region_name}.amazonaws.com",
             )
 
             try:
